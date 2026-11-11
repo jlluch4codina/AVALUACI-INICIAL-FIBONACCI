@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ENS AVALUEM - PCMAT</title>
+  <!-- Tailwind CSS per als controls superiors -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- html2canvas per exportació a imatge -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      background-color: #f1f5f9;
+      margin: 0;
+      padding: 24px 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* FULL PRINCIPAL A4 */
+    #document-sheet {
+      background-color: white;
+      width: 100%;
+      max-width: 920px;
+      padding: 32px 40px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      position: relative;
+    }
+
+    /* CAPÇALERA PCMAT */
+    .header-banner-left {
+      background-color: #216130;
+      border-radius: 9999px 25px 35px 9999px;
+      position: relative;
+      padding: 6px 28px 6px 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .target-icon-bg {
+      background-color: #82c488;
+      border-radius: 50%;
+      width: 42px;
+      height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .pcmat-badge {
+      background-color: #216130;
+      border-radius: 12px;
+      padding: 4px 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    /* METADADES */
+    .meta-box {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      background: #f8fafc;
+      padding: 12px 18px;
+      border-radius: 10px;
+      margin-bottom: 24px;
+      border: 1px solid #e2e8f0;
+    }
+
+    .meta-field {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+      min-width: 220px;
+    }
+
+    .meta-field label {
+      font-weight: 700;
+      color: #334155;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
+    .meta-field input {
+      border: 1px solid #cbd5e1;
+      padding: 6px 12px;
+      border-radius: 6px;
+      width: 100%;
+      font-size: 14px;
+      font-weight: 600;
+      color: #1e293b;
+      outline: none;
+    }
+
+    .meta-field input:focus {
+      border-color: #216130;
+    }
+
+    /* TAULA D'EVALUACIÓ */
+    .eval-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 24px;
+    }
+
+    .eval-table th {
+      padding: 12px 8px;
+      font-size: 12.5px;
+      color: #334155;
+      font-weight: 700;
+      text-align: center;
+      vertical-align: bottom;
+      line-height: 1.25;
+    }
+
+    .eval-table th:first-child {
+      text-align: left;
+      width: 44%;
+    }
+
+    .eval-table th:not(:first-child) {
+      width: 14%;
+    }
+
+    .eval-table td {
+      padding: 12px 8px;
+      border-top: 1px solid #e2e8f0;
+      font-size: 14px;
+      color: #1e293b;
+      vertical-align: middle;
+    }
+
+    .eval-table td:not(:first-child) {
+      text-align: center;
+    }
+
+    .eval-table tr:hover {
+      background-color: #f8fafc;
+    }
+
+    /* CASELLA DE SELECCIÓ VECTORIAL CENTRADA EXACTAMENT */
+    .check-box {
+      width: 26px;
+      height: 26px;
+      border: 2px solid #94a3b8;
+      border-radius: 5px;
+      margin: 0 auto;
+      cursor: pointer;
+      background-color: #ffffff;
+      position: relative;
+      transition: all 0.15s ease;
+      user-select: none;
+    }
+
+    .check-box:hover {
+      border-color: #216130;
+      background-color: #f0fdf4;
+    }
+
+    .check-box.selected {
+      border-color: #216130;
+      background-color: #e6f4ea;
+    }
+
+    /* FORMA VECTORIAL DEL TIC (Garantit sense desplaçament en descarregar) */
+    .check-mark {
+      display: none;
+      width: 6px;
+      height: 12px;
+      border: solid #1e5631;
+      border-width: 0 3px 3px 0;
+      position: absolute;
+      top: 3px;
+      left: 8px;
+      transform: rotate(45deg);
+    }
+
+    .check-box.selected .check-mark {
+      display: block;
+    }
+
+    /* PEU DE PÀGINA */
+    .reflexio-badge {
+      background: #216130;
+      color: white;
+      padding: 6px 18px 6px 12px;
+      border-radius: 4px;
+      border-top-right-radius: 14px;
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- BARRA DE CONTROLS SUPERIOR -->
+  <div class="w-full max-w-[920px] mb-6 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+    <div class="flex items-center gap-3">
+      <div class="w-3 h-3 rounded-full bg-emerald-600 animate-pulse"></div>
+      <span id="progress-text" class="text-sm font-bold text-slate-700">0 de 8 ítems avaluats</span>
+    </div>
+    
+    <div class="flex items-center gap-3">
+      <button onclick="resetForm()" class="px-4 py-2 text-slate-600 bg-slate-100 hover:bg-slate-200 font-semibold text-sm rounded-xl transition-all">
+        Reiniciar
+      </button>
+      <button onclick="downloadImage()" class="px-5 py-2.5 bg-[#216130] hover:bg-[#184924] text-white font-bold text-sm rounded-xl shadow-md transition-all flex items-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+        Descarregar en Imatge / PDF
+      </button>
+    </div>
+  </div>
+
+  <!-- FULL D'AUTOAVALUACIÓ PRINCIPAL -->
+  <div id="document-sheet">
+    
+    <!-- Línia decorativa superior -->
+    <div class="w-full h-[1.5px] bg-slate-800 mb-4"></div>
+
+    <!-- Capçalera exacta PCMAT -->
+    <div class="flex items-center justify-between pb-3 mb-5 border-b border-slate-200">
+      
+      <!-- Esquerra: Banner "ENS AVALUEM" -->
+      <div class="header-banner-left">
+        <div class="target-icon-bg">
+          <svg class="w-7 h-7 text-[#216130]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10" stroke="white" stroke-width="2.5" />
+            <circle cx="12" cy="12" r="6" stroke="white" stroke-width="2" />
+            <circle cx="12" cy="12" r="2" fill="white" />
+            <path d="M15 9l5-5m0 0h-3m3 0v3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <span class="text-white font-black text-2xl tracking-tight pr-2">ENS AVALUEM</span>
+      </div>
+
+      <!-- Dreta: Badge PCMAT -->
+      <div class="pcmat-badge">
+        <span class="text-white font-black text-2xl tracking-wider pl-1">PCMAT</span>
+        <div class="bg-amber-100/90 p-1 rounded-lg flex items-center justify-center">
+          <svg class="w-9 h-7" viewBox="0 0 60 40" fill="none">
+            <circle cx="15" cy="12" r="6" fill="#8B4513"/>
+            <circle cx="15" cy="13" r="5" fill="#F2C94C"/>
+            <path d="M10 32C10 24 20 24 20 32" fill="#EB5757"/>
+            <circle cx="30" cy="10" r="6" fill="#475569"/>
+            <path d="M22 32C22 22 38 22 38 32" fill="#F2994A"/>
+            <circle cx="45" cy="14" r="5.5" fill="#2D9CDB"/>
+            <path d="M40 32C40 25 50 25 50 32" fill="#27AE60"/>
+            <rect x="5" y="28" width="50" height="4" rx="2" fill="#F2C94C"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dades alumne i data -->
+    <div class="meta-box">
+      <div class="meta-field">
+        <label for="student-name">Nom i cognoms:</label>
+        <input type="text" id="student-name" placeholder="Escriu el teu nom...">
+      </div>
+      <div class="meta-field" style="max-width: 220px;">
+        <label for="eval-date">Data:</label>
+        <input type="date" id="eval-date">
+      </div>
+    </div>
+
+    <!-- Títol instrucció -->
+    <div class="mb-5 flex items-start gap-2.5">
+      <div class="w-3.5 h-3.5 rounded-sm bg-[#216130] mt-1.5 shrink-0"></div>
+      <p class="text-base font-bold text-slate-800">
+        Abans de començar la proposta: <span class="font-normal text-slate-600">marca amb un <strong class="text-[#216130] text-lg font-bold">✓</strong> el que ja saps fer o coneixes</span>
+      </p>
+    </div>
+
+    <!-- Taula d'avaluació -->
+    <table class="eval-table">
+      <thead>
+        <tr>
+          <th></th>
+          <th>Ho sé i ho sabria explicar</th>
+          <th>Ho sé, però NO sabria com explicar-ho</th>
+          <th>Em sona</th>
+          <th>Ho deconec</th>
+        </tr>
+      </thead>
+      <tbody id="table-body">
+      </tbody>
+    </table>
+
+    <!-- Peu de pàgina -->
+    <div class="pt-4 border-t border-slate-200 flex justify-between items-center mt-8">
+      <div class="reflexio-badge">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
+        Reflexió
+      </div>
+      <div class="text-xs font-semibold text-slate-400">
+        Programa PCMAT • Departament d'Educació
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const items = [
+      "Sé què és una <strong>successió numèrica</strong> i puc descobrir la regla que segueix.",
+      "Sé <strong>continuar una successió</strong> a partir de la seva regla.",
+      "Sé què és la <strong>successió de Fibonacci</strong>.",
+      "Sé identificar <strong>regularitats entre nombres</strong> i utilitzar-les per fer prediccions.",
+      "Sé relacionar <strong>nombres i formes geomètriques</strong>.",
+      "Sé què és un <strong>angle de gir</strong> i el puc mesurar.",
+      "Sé donar <strong>instruccions precises a un robot</strong> perquè faci un recorregut.",
+      "Sé treballar de manera <strong>cooperativa i planificada</strong>."
+    ];
+
+    const responses = new Array(8).fill(null);
+
+    // Data actual per defecte
+    document.getElementById('eval-date').valueAsDate = new Date();
+
+    const tbody = document.getElementById('table-body');
+
+    function renderTable() {
+      tbody.innerHTML = '';
+
+      items.forEach((itemText, rowIndex) => {
+        const tr = document.createElement('tr');
+        
+        const tdText = document.createElement('td');
+        tdText.className = 'py-3 px-2';
+        tdText.innerHTML = itemText;
+        tr.appendChild(tdText);
+
+        for (let colIndex = 0; colIndex < 4; colIndex++) {
+          const tdCheck = document.createElement('td');
+          const box = document.createElement('div');
+          box.className = `check-box ${responses[rowIndex] === colIndex ? 'selected' : ''}`;
+          
+          // Tic vectorial exactament centrat
+          const mark = document.createElement('div');
+          mark.className = 'check-mark';
+          box.appendChild(mark);
+
+          box.onclick = () => selectOption(rowIndex, colIndex);
+
+          tdCheck.appendChild(box);
+          tr.appendChild(tdCheck);
+        }
+
+        tbody.appendChild(tr);
+      });
+
+      updateProgress();
+    }
+
+    function selectOption(rowIndex, colIndex) {
+      if (responses[rowIndex] === colIndex) {
+        responses[rowIndex] = null;
+      } else {
+        responses[rowIndex] = colIndex;
+      }
+      renderTable();
+    }
+
+    function updateProgress() {
+      const count = responses.filter(r => r !== null).length;
+      document.getElementById('progress-text').textContent = `${count} de 8 ítems avaluats`;
+    }
+
+    function resetForm() {
+      if (confirm("Vols esborrar totes les respostes marcases?")) {
+        responses.fill(null);
+        document.getElementById('student-name').value = '';
+        renderTable();
+      }
+    }
+
+    function downloadImage() {
+      const element = document.getElementById('document-sheet');
+      const nameInput = document.getElementById('student-name').value.trim();
+      const formattedName = nameInput ? nameInput.toLowerCase().replace(/\s+/g, '_') : 'alumne';
+
+      html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff'
+      }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = `autoavaluacio_PCMAT_${formattedName}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      });
+    }
+
+    // Inicialització
+    renderTable();
+  </script>
+</body>
+</html>
